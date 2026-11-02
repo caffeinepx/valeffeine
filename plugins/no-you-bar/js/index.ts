@@ -259,6 +259,7 @@ export default plugin({
 		)
 	},
 	stop({ logger }) {
+		this.requireReload()
 		logger.log('NoYouBar stopped')
 	},
 	SettingsComponent() {

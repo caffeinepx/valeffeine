@@ -133,6 +133,7 @@ export default plugin({
 		})
 	},
 	stop({ logger }) {
+		this.requireReload()
 		logger.log('Chatbar Restore stopped')
 	},
 })
