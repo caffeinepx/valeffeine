@@ -1,14 +1,41 @@
+<div align="center">
+
 # valeffeine
 
-Plugins for [Valenced](https://valenced.app), a client mod for Discord on mobile. This repo is [Scarlett](https://github.com/caffeinepx)'s.
+**Plugins for [Valenced](https://valenced.app), the Discord mobile client mod.**
+Bring back the old chat bar and the old bottom tabs.
 
-The tree started from the [official plugin template](https://github.com/Valenced/valenced-plugin-template). Sample plugins that shipped with that template are gone. New work goes in `plugins/`. Theme packs (colors, backgrounds, fonts, icons, emoji) go in `themes/`. One git repo builds every plugin and publishes them as one Valenced repository.
+<p>
+  <a href="https://github.com/caffeinepx/valeffeine/commits/main"><img alt="Commits" src="https://img.shields.io/github/commit-activity/t/caffeinepx/valeffeine?style=for-the-badge&logo=git&logoColor=white&label=commits&color=5865F2"></a>
+  <a href="https://github.com/caffeinepx/valeffeine/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/caffeinepx/valeffeine?style=for-the-badge&logo=github&logoColor=white&label=last%20commit&color=3ba55d"></a>
+  <a href="https://github.com/caffeinepx/valeffeine/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/caffeinepx/valeffeine?style=for-the-badge&logo=github&logoColor=white&color=f0b232"></a>
+</p>
+<p>
+  <a href="https://github.com/caffeinepx/valeffeine/actions/workflows/validate.yml"><img alt="Validate" src="https://img.shields.io/github/actions/workflow/status/caffeinepx/valeffeine/validate.yml?style=flat-square&label=validate"></a>
+  <a href="https://github.com/caffeinepx/valeffeine/actions/workflows/release.yml"><img alt="Release" src="https://img.shields.io/github/actions/workflow/status/caffeinepx/valeffeine/release.yml?style=flat-square&label=release"></a>
+  <a href="https://github.com/caffeinepx/valeffeine/issues"><img alt="Issues" src="https://img.shields.io/github/issues/caffeinepx/valeffeine?style=flat-square"></a>
+  <a href="https://github.com/caffeinepx/valeffeine/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/caffeinepx/valeffeine?style=flat-square&color=f0b232"></a>
+  <img alt="Bun" src="https://img.shields.io/badge/built%20with-Bun-black?style=flat-square&logo=bun&logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/github/languages/top/caffeinepx/valeffeine?style=flat-square&logo=typescript&logoColor=white">
+  <img alt="Repo size" src="https://img.shields.io/github/repo-size/caffeinepx/valeffeine?style=flat-square">
+</p>
 
-Docs for the host API live at [valenced.app/docs/plugin-development](https://valenced.app/docs/plugin-development). If you are picking this up in a new coding session, read `GROK.md` and `docs/STATUS.md` before editing a plugin.
+</div>
+
+---
+
+## Plugins
+
+| Plugin | Version | What it does |
+| --- | --- | --- |
+| **Chatbar Restore** <br><sub>`dev.caffeinepx.chatbar-restore`</sub> | 1.0.0 | Puts the old full-width chat bar back. No floating composer, no side padding. |
+| **NoYouBar** <br><sub>`dev.caffeinepx.no-you-bar`</sub> | 1.0.0 | Removes the You bar and restores the old bottom tabs: Home, Notifications, Profile and Settings. |
+
+Both are confirmed on a Pixel 9 with Valenced 352.6. Turning a plugin off puts Discord's current UI back.
 
 ## Install
 
-Nothing is on the catalog yet. After the first release lands on GitHub Pages, add this URL in the app:
+Add the repository in the app:
 
 **Settings > Valenced > Plugins > repository settings**
 
@@ -16,64 +43,56 @@ Nothing is on the catalog yet. After the first release lands on GitHub Pages, ad
 https://caffeinepx.github.io/valeffeine
 ```
 
-You can also install a single ZIP with **Install from file** on that same screen. Valenced checks the ZIP before it asks you to confirm.
+Then pick the plugins from the catalog. To install a single build instead, use **Install from file** on the same screen and choose a plugin ZIP.
 
-## What's in a plugin
+## Build from source
 
-Each folder under `plugins/` or `themes/` is one plugin. The folder name is a build label (kebab-case). The `id` inside `manifest.json` is the identity Valenced stores. Change the folder if you want. Do not change the id after a release, or existing installs will not see updates and will lose their settings.
-
-```
-plugins/silent-typing/
-  manifest.json      # id, version, dependencies, dist paths
-  tsconfig.json      # { "extends": "../../tsconfig.base.json" }
-  js/index.ts        # JS entry, bundled to index.js
-  assets/            # optional files copied into the ZIP
-  src/main/kotlin/   # only when the plugin needs native Android code
-```
-
-The bundler looks for the JS entry in this order: `js/index.*`, then `src/index.*`, then `index.*`. Extensions it accepts are `.ts`, `.tsx`, `.js`, `.jsx`.
-
-Plugin ids here use the prefix `dev.caffeinepx.`. A typing blocker would be `dev.caffeinepx.silent-typing`.
-
-`manifest.json` format is `1`. Always depend on `valenced.api` (something like `>=1 <2`) and `discord` (`*`, or a floor you have actually run). Version strings look like `1.2.0` or `1.3.0-beta1`. Ranges use `<`, `<=`, `=`, `>=`, `>`, or `*`. Caret and tilde ranges are not valid.
-
-## Build
-
-JS-only plugins need [Bun](https://bun.com/) (Node 22.18+ also works):
+You need [Bun](https://bun.com/) (Node 22.18+ also works).
 
 ```sh
+git clone https://github.com/caffeinepx/valeffeine.git
+cd valeffeine
 bun install
-bun run build          # every plugin
-bun run build silent-typing
-bun run serve          # local repository on port 8080
+
+bun run build                 # every plugin
+bun run build no-you-bar      # one plugin
+bun run serve                 # local repository on port 8080
 ```
 
-On a phone that can see your LAN, add the URL `bun run serve` prints. Emulators and some USB setups block cleartext LAN. Forward the port and pin the base URL:
+Add the URL that `serve` prints in the app. If your phone can't reach your LAN, forward the port over USB:
 
 ```sh
 bun run serve -- --base-url http://127.0.0.1:8080
 adb reverse tcp:8080 tcp:8080
 ```
 
-`bun run lint` runs Biome. `bun run lint:types` typechecks every plugin that has a `tsconfig.json`. With an empty `plugins/` directory that glob matches nothing, so run it again once the first plugin exists.
+Other scripts: `bun run lint` (Biome) and `bun run lint:types` (TypeScript).
 
-Native Kotlin also needs JDK 25 and Android SDK platform 36 (`ANDROID_HOME` or `sdk.dir` in `local.properties`). The Valenced Android API comes from GitHub Packages. Put a read-only token in `~/.gradle/gradle.properties`:
+Native Kotlin plugins also need JDK 25, Android SDK platform 36, and a GitHub Packages token. None of the plugins here use native code, so you can skip that.
+
+## Layout
 
 ```
-GitHubPackagesUsername=YOUR_GITHUB_USERNAME
-GitHubPackagesPassword=YOUR_PERSONAL_ACCESS_TOKEN
+plugins/<name>/
+  manifest.json     # id, version, dependencies
+  js/index.ts       # entry, bundled to index.js
+themes/             # theme packs (none yet)
+docs/               # status and task notes
 ```
 
-The token needs the `read:packages` scope. CI expects the same token as the `READ_PACKAGES_TOKEN` secret, and the Actions variable `ACKNOWLEDGE_PR_SECURITY_WARNING` set to `true` after you require approval for workflows from outside collaborators. Details are in the comment at the top of `.github/workflows/validate.yml`.
-
-Gradle task names come from the folder. `plugins/silent-typing/` becomes `packageSilentTyping`. Folder names must be unique across `plugins/` and `themes/`.
+Ids use the prefix `dev.caffeinepx.`. Don't change an id after a release, or installs won't see updates.
 
 ## Releases
 
-Push to `main` after you bump `version` in each changed `manifest.json`. The release workflow builds ZIPs, keeps older versions in a pool (so people already on an old build can still download it), and publishes `index.json` to `gh-pages`.
+Bump `version` in the changed `manifest.json`, then push to `main`. The release workflow builds the ZIPs and publishes the index to `gh-pages`.
 
-`repo.config.json` is the name and blurb shown for this repository inside Valenced. Channels in that file are optional pins, not a substitute for bumping versions.
+## Docs
+
+- [Valenced plugin development](https://valenced.app/docs/plugin-development)
+- [`docs/STATUS.md`](docs/STATUS.md) for what's shipped
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for how each plugin was built
+- [`GROK.md`](GROK.md) for coding agents working in this repo
 
 ## License
 
-[GPL-3.0](LICENSE), inherited from the Valenced plugin template.
+[GPL-3.0](LICENSE)

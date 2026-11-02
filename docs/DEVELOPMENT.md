@@ -66,7 +66,28 @@ Search terms that have matched this UI in Metro dumps: `ChatInput`, `chat-input`
 
 ### Notes from the session that does this
 
-(fill in)
+Shipped as 1.0.0 on 2026-11-02. Confirmed by Scarlett on a Pixel 9 (Valenced 352.6 Alpha, versionCode 352206), side by side with stock Discord 329.13 Stable.
+
+The experiment route is dead. 329.13 picked the layout from `useMobileVisualRefreshConfig().chatInputFloating` (experiment `2026-02-mobile-visual-refresh`). 352.6 still registers the experiment, but `ChatInput.tsx` no longer reads it, and the floating pill is the only layout. Forcing the experiment does nothing.
+
+What the plugin does, all inside a wrapper on `memo(ChatInput).type` (`modules/chat_input/native/ChatInput.tsx`):
+
+- Drops `floatingContainer` from the bar's style array. What is left is Discord's own `container`: the 329.13 strip with `BACKGROUND_BASE_LOWER`, a 1px `BORDER_SUBTLE` top border, and `PX_8` padding.
+- Clears the chrome on `floatingInputBox` and adds `paddingBottom: 8` there, because `FloatingChatInputContainer` puts an animated `paddingBottom` over the strip's padding.
+- Rebuilds the row as `[circle(+)] [pill(field, gift/emoji)] [circle(send/mic)]`.
+- Removes `ChatInputScrimGradient`, the solid scrim fill, and `floatingScrimOverlap`.
+- Paints the safe-area bottom inset under the bar in the bar color, as 329.13 did.
+- Sets `floatingChatInputEnabled` to false on the native chat list (`DCDChatList` hardcodes it to true).
+
+Elements are matched by the key sets of the 352.6 style sheet entries (decoded from the bundle), not by guessed values.
+
+Sizes are pinned, not read from tokens. The 329.13 token resolvers return one value with the refresh on and another with it off, and the old bar is the off column. 352.6 kept the token names, but they now return the on values. Old values: button 40, pill radius 24, pill border 0, pill margin 4, pill padding 2, field `marginLeft` 6. Measured on the phone at 384 dpi: buttons 96 px, gaps 19 px. Colors come from the floating box's own background (`#242429` on dark, against `#26262e` measured on 329.13), so they follow the theme.
+
+Not in this plugin: the apps and gift buttons on the left. 352.6 shows gift inside the pill next to emoji. Send behavior is Discord's own (mic when empty).
+
+Checked: the bar layout in DMs, against 329.13, keyboard closed. Scarlett called the task done before these were walked one by one: threads, server text channels, keyboard open, replies, edits, stickers, GIFs, slash commands, and disabling the plugin live (the render goes back on `cleanup`, and the bar changes on the next re-render). If a client update breaks it, check whether the style keys in `isFloatingContainer`, `isFloatingInputBox`, `isMainRow`, and `isInputFlat` still match.
+
+How the bundles were read (no installs beyond the scratch download Scarlett approved): unzip the APK, then run `hermesc -b -dump-bytecode`. Use the hermesc in `node_modules/react-native` for bytecode v96 (329.13), and `hermes-compiler@250829098.0.19` from npm for v98 (352.6). Object literals were decoded from the raw buffers with a small script. The Gradle package task needs Java, which is not installed here. For local device tests, the ZIP is just `manifest.json` and `index.js` at the root.
 
 ## Task 2. NoYouBar
 
@@ -111,4 +132,30 @@ Valenced's typed Discord modules include things like `@valenced/discord/modules/
 
 ### Notes from the session that does this
 
-(fill in)
+Shipped as 1.0.0 on 2026-11-02. Confirmed by Scarlett on a Pixel 9 (Valenced 352.6 Alpha, versionCode 352206). The code is the same as the 0.2.6 test build; only the version changed.
+
+The experiment route is dead in 352.6. None of the Tabs V2 / You Tab experiments are in the bundle, and `modules/main_tabs_v2/native/TabsNavigator.tsx` was deleted (329.13 still ships it next to the You bar). There is no legacy tab component left to remount, so the plugin draws the bar itself.
+
+How 352.6 navigates (logged from the live root navigation state):
+
+- Root stack: `main` > `tabs` (MainTabs) > the You bar stack: `guilds`, `icymi`, `notifications`.
+- `you` (YouScreen) and `settings` (Settings > SettingsNavigator, a native stack starting at `Overview`) are root screens over `main`.
+- The You bar (`memo(YouBarThemed)` in `native/you_bar/YouBar.tsx`) floats over `guilds`. The bell pushes `notifications`, the avatar opens `you`. Channels slide over it, so it is hidden in chats without any logic of its own.
+- Lists keep `useYouBarTotalHeight()` free at the bottom: 56 + the bottom inset (80 dp on the Pixel 9).
+
+What the plugin does:
+
+- Wraps `memo(YouBarThemed).type`. The wrapper still calls Discord's render, so the hook order never changes, and returns a docked bar: Home, Notifications, You, Settings. It is 56 dp plus the safe-area inset, the space screens already leave for the You bar.
+- `beforeJSX` on the `Notifications`, `YouScreen`, and `Settings` screen components renders each in a box that stops above the bar, with the bar under it. Swapping their exports does nothing, because the navigators hold their own reference.
+- Inside those screens, components that are not exported are swapped by type from the rendered tree (a cached wrapper per type that edits the output): `HeaderInner` loses its back button (`PressableOpacity > LeftBackIconWithBadge`), `UnconnectedYouScreen` loses `BackButton` (the X), `YouBannerDecorations` loses the item with `testID=you_tab_settings_button` and its bottom padding, and the `Overview` screen in `SettingsNavigator` gets `headerLeft: () => null`. Settings subpages keep their back arrow. Matching is by function name and testID as they are in 352.6, so re-check them after a client update.
+- Tab switches crossfade: `beforeJSX` on React Navigation's shared `Screen` component sets `animation: 'fade'` on the `notifications`, `you`, and `settings` routes instead of Discord's slide-in / slide-up. Setting it from inside the screen was too late for Settings, which loads through `getComponent`. The fade also hides the You screen laying out its banner on the first frames, which looked like a jump with `animation: 'none'`.
+- Switching tabs keeps at most one tab screen over the home layout, so hardware Back from any tab lands on Home. With the fade, whatever sits under the incoming screen shows through, so the order matters: You and Settings are pushed over whatever is showing, and the screens left underneath are dropped 500 ms later (a root `RESET` that keeps `main` and the top route, plus `POP_TO_TOP` on the tabs stack). Going to Home or Notifications sets up the tabs stack while it is still covered and then pops the root screen. 0.2.5 popped first and pushed second, which flashed Home between Notifications and Settings. Everything goes through `getRootNavigationRef()` from `RootNavigationRef.native.tsx`.
+- Badges: Notifications uses Discord's `useNotificationsTabBadge()`. Home shows mentions across servers and DMs from `GuildReadStateStore.getTotalMentionCount()` (it sums every guild plus the DM bucket; passing `true` leaves DMs out), refreshed with the store's change listener. Each badge is its own small component. Settings are read with plain `useState` + `subscribe`. An earlier build called `jsonStorage.use()` and the badge hook directly in the bar and crashed with a hook-order error on the frozen Home screen.
+- Plugin settings (`storage.json`): `showLabels`, and `tabs.notifications` / `tabs.profile` / `tabs.settings`. Home is always on. You and Settings cannot both be off. With the Settings tab off, the You menu gets its Settings button back and Settings keeps its close button.
+- Icons: ChatIcon for Home (HomeIcon and ClydeIcon are not loaded on 352.6, and only modules Discord has already run can be found by path), BellIcon, SettingsIcon, and the user's avatar at `AvatarSizes.TABS_22`. Colors are tokens (`Tokens.default.colors`).
+
+Checked on the phone: cold start; every tab from every other tab with the right one selected and no slide; Notifications without its back button; You without the X, with Quests / Shop / Nitro only; Settings without the close button, subpages with their back arrow, bar on all of them; label toggle live; Settings tab off (three tabs, Settings button back on You, close button back on Settings) and on again; hardware Back from Notifications to Home; screen recordings of Notifications > Settings, Notifications > You, You > Settings, Settings > Notifications, and You > Home, all straight crossfades with no Home frame; the selected server on Home survives the cleanup; opening a DM hides the bar and Back brings it back; disabling the plugin live puts the You bar back (checked on 0.1.15).
+
+Not checked: either badge with a real count. The Notifications hook and `getTotalMentionCount()` both returned 0 whenever they were read, because the one live ping was read when the app reopened in that channel. switching accounts, server text channels and threads (only a DM), and the connection banner. The You bar drew Discord's "connecting" banner and this bar drops it. Re-enabling the plugin live only swaps the bar on the next render of the You bar; a restart always does. With the Notifications tab off there is no other way into Notifications. ICYMI has no tab, same as the old layout.
+
+Gotchas for the next session: Valenced applies an update from the local repo on the next start ("pending reload"), so a test cycle is build, restart, restart. A plugin that throws during render gets disabled and stays disabled across updates until it is turned back on in Plugins. `Design.createStyles` cannot run at module load, only after init.

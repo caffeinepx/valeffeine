@@ -2,14 +2,14 @@
 
 Living list of plugins in this repo. Update this file in the same change that adds, renames, or removes one.
 
-Last updated: 2026-11-02. Two plugins are planned. Specs are in `docs/DEVELOPMENT.md`. Neither has code yet.
+Last updated: 2026-11-02. Chatbar Restore shipped as 1.0.0, confirmed on Discord 352.6. NoYouBar shipped as 1.0.0, confirmed on Discord 352.6. Specs are in `docs/DEVELOPMENT.md`.
 
 ## Plugins
 
 | Folder | Id | Version | Status | What it does |
 | --- | --- | --- | --- | --- |
-| `plugins/chatbar-restore` | `dev.caffeinepx.chatbar-restore` | | planned | Task 1. Old full-width chat bar, no floating composer, no side padding. |
-| `plugins/no-you-bar` | `dev.caffeinepx.no-you-bar` | | planned | Task 2. Remove the You bar and bring back the old bottom tabs. |
+| `plugins/chatbar-restore` | `dev.caffeinepx.chatbar-restore` | 1.0.0 | shipped | Task 1. Old full-width chat bar, no floating composer, no side padding. |
+| `plugins/no-you-bar` | `dev.caffeinepx.no-you-bar` | 1.0.0 | shipped | Task 2. Remove the You bar and bring back the old bottom tabs. |
 
 ## Themes
 
