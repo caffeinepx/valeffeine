@@ -28,10 +28,9 @@ Bring back the old chat bar and the old bottom tabs.
 
 | Plugin | Version | What it does |
 | --- | --- | --- |
-| **Chatbar Restore** <br><sub>`dev.caffeinepx.chatbar-restore`</sub> | 1.0.1 | Puts the old full-width chat bar back. No floating composer, no side padding. |
 | **NoYouBar** <br><sub>`dev.caffeinepx.no-you-bar`</sub> | 1.0.1 | Removes the You bar and restores the old bottom tabs: Home, Notifications, Profile and Settings. |
 
-Both are confirmed on a Pixel 9 with Valenced 352.6. Turning a plugin off puts Discord's current UI back.
+Confirmed on a Pixel 9 with Valenced 352.6. Turning the plugin off puts Discord's current UI back.
 
 ## Install
 
