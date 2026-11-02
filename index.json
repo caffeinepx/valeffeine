@@ -3,42 +3,6 @@
   "name": "valeffeine",
   "description": "Plugins for Valenced by Scarlett.",
   "plugins": {
-    "dev.caffeinepx.chatbar-restore": {
-      "name": "Chatbar Restore",
-      "description": "Restores the old chat bar. No floating composer, no extra padding on the sides.",
-      "author": "Scarlett (https://github.com/caffeinepx \"GitHub\")",
-      "channels": {
-        "latest": "1.0.1"
-      },
-      "versions": {
-        "1.0.0": {
-          "url": "https://caffeinepx.github.io/valeffeine/pool/dev.caffeinepx.chatbar-restore@1.0.0.zip",
-          "sha256": "3efc94837ed35330912a5c3c848c75f7843a460bba0360dcb13d37f7c0cb97db",
-          "size": 2726,
-          "dependencies": {
-            "valenced.api": {
-              "version": ">=1 <2"
-            },
-            "discord": {
-              "version": "*"
-            }
-          }
-        },
-        "1.0.1": {
-          "url": "https://caffeinepx.github.io/valeffeine/pool/dev.caffeinepx.chatbar-restore@1.0.1.zip",
-          "sha256": "76bb22fdd96eeafd08eef7ec618eedbaca6fa73f9849a494b13d741ed7a23010",
-          "size": 2741,
-          "dependencies": {
-            "valenced.api": {
-              "version": ">=1 <2"
-            },
-            "discord": {
-              "version": "*"
-            }
-          }
-        }
-      }
-    },
     "dev.caffeinepx.no-you-bar": {
       "name": "NoYouBar",
       "description": "Removes Discord's You bar and restores the old bottom tabs: DMs and servers, Notifications, and Profile plus Settings.",
