@@ -1,6 +1,8 @@
 # GROK.md
 
-Instructions for coding agents working in this repo. Read this file and `docs/STATUS.md` at the start of a session before you add or change a plugin.
+Instructions for coding agents working in this repo. Read this file, `docs/STATUS.md`, and `docs/DEVELOPMENT.md` at the start of a session before you add or change a plugin.
+
+If the user says "do task N" (or "task #N"), do only that task in `docs/DEVELOPMENT.md`. Do not start the other tasks.
 
 ## What this repo is
 
