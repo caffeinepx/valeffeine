@@ -2,13 +2,13 @@
 
 Living list of plugins in this repo. Update this file in the same change that adds, renames, or removes one.
 
-Last updated: 2026-11-02. NoYouBar 1.3.0: notification badge no longer sticks as a no-op when its module loads late, and long press on the You tab opens Discord's Account sheet (online status and account switcher). Confirmed on Discord 352.6. Specs are in `docs/DEVELOPMENT.md`.
+Last updated: 2026-11-03. NoYouBar 1.3.1: the bar is drawn even when Discord's icon modules have not loaded yet on a cold start (it used to fall back to the stock You bar, and drew nothing on the You and Notifications screens, until a reload; issue #2), and it is memoized so it no longer re-renders with every update of Discord's hidden You bar (issue #1). Specs are in `docs/DEVELOPMENT.md`.
 
 ## Plugins
 
 | Folder | Id | Version | Status | What it does |
 | --- | --- | --- | --- | --- |
-| `plugins/no-you-bar` | `dev.caffeinepx.no-you-bar` | 1.3.0 | shipped | Task 2. Remove the You bar and bring back the old bottom tabs. |
+| `plugins/no-you-bar` | `dev.caffeinepx.no-you-bar` | 1.3.1 | shipped | Task 2. Remove the You bar and bring back the old bottom tabs. |
 
 ## Themes
 

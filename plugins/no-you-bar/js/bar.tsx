@@ -7,7 +7,7 @@ import {
 	getModuleDependencies,
 	isModuleInitialized,
 } from '@valenced/modules/metro'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { switchTab } from './navigation'
 import { found, useFoundModules, useSettings } from './state'
@@ -26,15 +26,20 @@ const TAB_AVATAR_SIZE = 'tabs22'
 type Icon = ComponentType<{ size?: string; color?: unknown }>
 
 // Icon modules load lazily. Only modules Discord has already run can be
-// found by path, so each slot takes the first one that is there. ChatIcon,
-// BellIcon, and SettingsIcon are loaded by the time the home screen renders
-// on 352.6.
+// found by path, so each slot takes the first one that is there. On a cold
+// start some of them may not have run yet when the bar first renders: the
+// bar is drawn anyway with an empty slot, and start() re-renders it as each
+// icon module arrives (ICON_PATHS + foundModulesChanged).
 const ICON_CHOICES = {
 	home: ['HomeIcon', 'ClydeIcon', 'ChatIcon'],
 	bell: ['BellIcon'],
 	user: ['UserCircleIcon', 'UserIcon'],
 	settings: ['SettingsIcon'],
 } as const
+
+export const ICON_PATHS = [...new Set(Object.values(ICON_CHOICES).flat())].map(
+	name => `${ICONS}${name}.tsx`,
+)
 
 const iconCache: Partial<Record<keyof typeof ICON_CHOICES, Icon>> = {}
 
@@ -52,16 +57,43 @@ function icon(slot: keyof typeof ICON_CHOICES): Icon | undefined {
 	}
 }
 
+let avatarCache: ComponentType<Props> | undefined
 function avatarComponent(): ComponentType<Props> | undefined {
+	if (avatarCache) return avatarCache
 	const [exports] = lookupModuleWithImportedPath(AVATAR) as unknown[]
 	const fn = (exports as { default?: unknown } | undefined)?.default
-	return fn ? (fn as ComponentType<Props>) : undefined
+	if (fn) avatarCache = fn as ComponentType<Props>
+	return avatarCache
+}
+
+type UserStore = {
+	getCurrentUser?: () => unknown
+	addChangeListener?: (listener: () => void) => void
+	removeChangeListener?: (listener: () => void) => void
+}
+
+function userStore() {
+	return (Stores as Record<string, UserStore>).UserStore
 }
 
 function currentUser() {
-	const store = (Stores as Record<string, { getCurrentUser?: () => unknown }>)
-		.UserStore
-	return store?.getCurrentUser?.()
+	return userStore()?.getCurrentUser?.()
+}
+
+// The bar no longer re-renders with Discord's You bar, so it follows the
+// current user itself (new avatar, account switch). UserStore emits for
+// every user Discord loads; the state only changes when the current user
+// record does, so other emits cost a getter call.
+function useCurrentUser() {
+	const [user, setUser] = useState(currentUser)
+	useEffect(() => {
+		const store = userStore()
+		const update = () => setUser(currentUser())
+		update()
+		store?.addChangeListener?.(update)
+		return () => store?.removeChangeListener?.(update)
+	}, [])
+	return user
 }
 
 // Long press on You: the account sheet (online status, switch accounts,
@@ -223,24 +255,18 @@ type TabSpec = {
 	badge?: 'home' | 'notifications'
 }
 
-export function TabBar({
-	active,
-	fallback,
-}: {
-	active: Tab
-	fallback?: ReactNode
-}) {
+// memo: the home bar is rendered from Discord's You bar, which re-renders
+// on every presence, activity, and voice update. The bar's own hooks
+// (settings, modules, badges, current user, theme) re-render it when
+// something it shows changes; nothing else needs to.
+export const TabBar = memo(function TabBar({ active }: { active: Tab }) {
 	const styles = useStyles()
 	const insets = ReactNativeSafeAreaContext?.useSafeAreaInsets?.()
-	// Always called, so the hook order is stable even if a module is missing.
 	const settings = useSettings()
-	// Re-render when a module (the badge hook) arrives after the first render.
+	// Re-render when a module (an icon, the badge hook) arrives after the
+	// first render.
 	useFoundModules()
-
-	const Home = icon('home')
-	const Bell = icon('bell')
-	const Gear = icon('settings')
-	if (!Home || !Bell || !Gear) return (fallback ?? null) as never
+	const user = useCurrentUser()
 
 	const colors = tokenColors()
 	const tint = (tab: Tab) =>
@@ -248,8 +274,12 @@ export function TabBar({
 			? colors.INTERACTIVE_ICON_ACTIVE
 			: colors.INTERACTIVE_ICON_DEFAULT
 
+	// An icon whose module has not run yet leaves its slot empty until it
+	// does; the bar itself is always drawn, so the You bar never shows.
+	const Home = icon('home')
+	const Bell = icon('bell')
+	const Gear = icon('settings')
 	const Avatar = avatarComponent()
-	const user = currentUser()
 	const UserIcon = icon('user')
 	let you: ReactNode = null
 	if (Avatar && user) you = <Avatar user={user} size={TAB_AVATAR_SIZE} />
@@ -259,20 +289,20 @@ export function TabBar({
 		{
 			tab: 'home',
 			label: 'Home',
-			glyph: <Home size="md" color={tint('home')} />,
+			glyph: Home ? <Home size="md" color={tint('home')} /> : null,
 			badge: 'home',
 		},
 		{
 			tab: 'notifications',
 			label: 'Notifications',
-			glyph: <Bell size="md" color={tint('notifications')} />,
+			glyph: Bell ? <Bell size="md" color={tint('notifications')} /> : null,
 			badge: 'notifications',
 		},
 		{ tab: 'profile', label: 'You', glyph: you },
 		{
 			tab: 'settings',
 			label: 'Settings',
-			glyph: <Gear size="md" color={tint('settings')} />,
+			glyph: Gear ? <Gear size="md" color={tint('settings')} /> : null,
 		},
 	]
 
@@ -291,7 +321,7 @@ export function TabBar({
 				))}
 		</View>
 	)
-}
+})
 
 function TabButton({
 	styles,

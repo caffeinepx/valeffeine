@@ -1,10 +1,9 @@
 import { getModuleWithImportedPath } from '@valenced/discord/utils/modules/finders'
 import { createElement } from 'react'
-import { TabBar } from './bar'
+import { ICON_PATHS, TabBar } from './bar'
 import { fadeTabScreens, swapRender, withTabBar } from './screens'
 import SettingsComponent from './settings'
 import { DEFAULT_SETTINGS, found, foundModulesChanged } from './state'
-import type { ReactNode } from 'react'
 import type { Badge, RootRef, Storage } from './state'
 
 // Read from the Hermes bundle of Discord 352.6 Alpha. Notes are in
@@ -68,12 +67,16 @@ export default plugin({
 					foundModulesChanged()
 				},
 			),
+			// Icons Discord had not loaded yet when the bar first rendered.
+			...ICON_PATHS.map(path =>
+				getModuleWithImportedPath(path, () => foundModulesChanged()),
+			),
 			getModuleWithImportedPath(`${BASE}native/you_bar/YouBar.tsx`, exports => {
-				const undo = swapRender(exports, 'YouBarThemed', logger, out =>
-					createElement(TabBar, {
-						active: 'home',
-						fallback: out as ReactNode,
-					}),
+				// Discord's render still runs (its hooks stay in order), but its
+				// output is dropped for the bar, which memo keeps from
+				// re-rendering along with it.
+				const undo = swapRender(exports, 'YouBarThemed', logger, () =>
+					createElement(TabBar, { active: 'home' }),
 				)
 				if (undo) cleanup(undo)
 			}),
