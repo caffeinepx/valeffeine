@@ -8,7 +8,7 @@
       "description": "Removes Discord's You bar and restores the old bottom tabs: DMs and servers, Notifications, and Profile plus Settings.",
       "author": "Scarlett (https://github.com/caffeinepx \"GitHub\")",
       "channels": {
-        "latest": "1.3.0"
+        "latest": "1.3.1"
       },
       "versions": {
         "1.0.0": {
@@ -54,6 +54,19 @@
           "url": "https://caffeinepx.github.io/valeffeine/pool/dev.caffeinepx.no-you-bar@1.3.0.zip",
           "sha256": "d95d8e9bda86b1ee248b3576ba7e4925bdb8f04fd75146e9d15f591612fe1105",
           "size": 5190,
+          "dependencies": {
+            "valenced.api": {
+              "version": ">=1 <2"
+            },
+            "discord": {
+              "version": "*"
+            }
+          }
+        },
+        "1.3.1": {
+          "url": "https://caffeinepx.github.io/valeffeine/pool/dev.caffeinepx.no-you-bar@1.3.1.zip",
+          "sha256": "7bf5c470ce757ffdabe41bc3131fb201d5b2c0766e0f1cd6bec630a9198f96ea",
+          "size": 5288,
           "dependencies": {
             "valenced.api": {
               "version": ">=1 <2"
