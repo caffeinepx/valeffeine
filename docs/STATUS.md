@@ -2,13 +2,13 @@
 
 Living list of plugins in this repo. Update this file in the same change that adds, renames, or removes one.
 
-Last updated: 2026-11-02. NoYouBar 1.1.0: split into modules, opaque bar on translucent themes, full screen Settings by default (toggleable). Confirmed on Discord 352.6. Specs are in `docs/DEVELOPMENT.md`.
+Last updated: 2026-11-02. NoYouBar 1.3.0: notification badge no longer sticks as a no-op when its module loads late, and long press on the You tab opens Discord's Account sheet (online status and account switcher). Confirmed on Discord 352.6. Specs are in `docs/DEVELOPMENT.md`.
 
 ## Plugins
 
 | Folder | Id | Version | Status | What it does |
 | --- | --- | --- | --- | --- |
-| `plugins/no-you-bar` | `dev.caffeinepx.no-you-bar` | 1.1.0 | shipped | Task 2. Remove the You bar and bring back the old bottom tabs. |
+| `plugins/no-you-bar` | `dev.caffeinepx.no-you-bar` | 1.3.0 | shipped | Task 2. Remove the You bar and bring back the old bottom tabs. |
 
 ## Themes
 
